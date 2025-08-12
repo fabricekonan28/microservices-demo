@@ -9,6 +9,7 @@ services:
     volumes:
       - jenkins_home1:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock  # Permet d'utiliser Docker depuis Jenkins
+    user: root
     restart: unless-stopped
 
   sonarqube:
