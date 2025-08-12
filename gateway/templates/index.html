@@ -5,7 +5,15 @@
 <h1>API Gateway</h1>
 <ul>
   {% for service in services %}
-    <li><a href="/{{ service }}/">{{ service }}</a></li>
+    {% if service == "users" %}
+      <li><a href="http://localhost:8001/{{ service }}">{{ service }}</a></li>
+    {% elif service == "products" %}
+      <li><a href="http://localhost:8002/{{ service }}">{{ service }}</a></li>
+    {% elif service == "orders" %}
+      <li><a href="http://localhost:8003/{{ service }}">{{ service }}</a></li>
+    {% else %}
+      <li>{{ service }}</li>
+    {% endif %}
   {% endfor %}
 </ul>
 </body>
