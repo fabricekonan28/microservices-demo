@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  jenkins:
+    image: jenkins-trivy
+    ports:
+      - "8080:8080"    # UI Jenkins
+      - "50000:50000"  # Agent JNLP
+    volumes:
+      - jenkins_home1:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock  # Permet d'utiliser Docker depuis Jenkins
+    restart: unless-stopped
+
+  sonarqube:
+    image: sonarqube:lts
+    environment:
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+    ports:
+      - "9000:9000"    # UI SonarQube
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+    restart: unless-stopped
+
+volumes:
+  jenkins_home1:
+  sonarqube_data:
+  sonarqube_extensions:

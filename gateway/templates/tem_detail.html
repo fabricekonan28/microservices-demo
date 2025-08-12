@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head><title>{{ service[:-1] }} details</title></head>
+<body>
+<h1>{{ service[:-1] }} details</h1>
+<ul>
+  {% for key, value in item.items() %}
+    <li><strong>{{ key }}:</strong> {{ value }}</li>
+  {% endfor %}
+</ul>
+<a href="/{{ service }}/">Back to {{ service }} list</a>
+</body>
+</html>

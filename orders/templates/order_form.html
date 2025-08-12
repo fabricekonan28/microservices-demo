@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>{{ action }} une commande</h2>
+<form method="post">
+    <label>User ID:<br>
+        <input type="number" name="user_id" required value="{{ order.user_id if order else '' }}">
+    </label><br><br>
+    <label>Product ID:<br>
+        <input type="number" name="product_id" required value="{{ order.product_id if order else '' }}">
+    </label><br><br>
+    <button type="submit">{{ action }}</button>
+</form>
+{% endblock %}

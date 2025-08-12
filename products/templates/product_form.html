@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>{{ action }} un produit</h2>
+<form method="post">
+    <label>Nom:<br>
+        <input type="text" name="name" required value="{{ product.name if product else '' }}">
+    </label><br><br>
+    <label>Description:<br>
+        <textarea name="description">{{ product.description if product else '' }}</textarea>
+    </label><br><br>
+    <label>Prix:<br>
+        <input type="number" step="0.01" name="price" required value="{{ product.price if product else '' }}">
+    </label><br><br>
+    <button type="submit">{{ action }}</button>
+</form>
+{% endblock %}

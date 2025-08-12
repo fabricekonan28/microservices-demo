@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head><title>Create {{ service[:-1] }}</title></head>
+<body>
+<h1>Create new {{ service[:-1] }}</h1>
+<form action="/{{ service }}/create" method="post">
+  {% if service == "users" %}
+    <label>name: <input type="text" name="name" required></label><br>
+    <label>email: <input type="email" name="email" required></label><br>
+  {% elif service == "products" %}
+    <label>name: <input type="text" name="name" required></label><br>
+    <label>description: <input type="text" name="description"></label><br>
+    <label>price: <input type="number" step="0.01" name="price" required></label><br>
+  {% elif service == "orders" %}
+    <label>user_id: <input type="number" name="user_id" required></label><br>
+    <label>product_id: <input type="number" name="product_id" required></label><br>
+  {% endif %}
+  <button type="submit">Create</button>
+</form>
+<a href="/{{ service }}/">Back to {{ service }} list</a>
+</body>
+</html>

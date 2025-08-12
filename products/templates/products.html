@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Liste des produits</h2>
+<table border="1" cellpadding="5" cellspacing="0">
+    <tr><th>ID</th><th>Nom</th><th>Description</th><th>Prix</th><th>Actions</th></tr>
+    {% for p in products %}
+    <tr>
+        <td>{{ p.id }}</td>
+        <td>{{ p.name }}</td>
+        <td>{{ p.description }}</td>
+        <td>{{ "%.2f"|format(p.price) }} €</td>
+        <td>
+            <a href="/products/edit/{{ p.id }}">Modifier</a> |
+            <a href="/products/delete/{{ p.id }}" onclick="return confirm('Supprimer ce produit ?');">Supprimer</a>
+        </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="5">Aucun produit trouvé.</td></tr>
+    {% endfor %}
+</table>
+{% endblock %}

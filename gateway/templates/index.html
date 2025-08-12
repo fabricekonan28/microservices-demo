@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<head><title>API Gateway</title></head>
+<body>
+<h1>API Gateway</h1>
+<ul>
+  {% for service in services %}
+    <li><a href="/{{ service }}/">{{ service }}</a></li>
+  {% endfor %}
+</ul>
+</body>
+</html>

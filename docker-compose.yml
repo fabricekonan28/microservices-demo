@@ -1,0 +1,77 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    container_name: db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  users_service:
+    build: ./users
+    container_name: users_service
+    restart: always
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: ${USERS_DATABASE_URL}
+    ports:
+      - "8001:8001"
+    networks:
+      - backend
+
+  products_service:
+    build: ./products
+    container_name: products_service
+    restart: always
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: ${PRODUCTS_DATABASE_URL}
+    ports:
+      - "8002:8002"
+    networks:
+      - backend
+
+  orders_service:
+    build: ./orders
+    container_name: orders_service
+    restart: always
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: ${ORDERS_DATABASE_URL}
+    ports:
+      - "8003:8003"
+    networks:
+      - backend
+
+  gateway_service:
+    build: ./gateway
+    container_name: gateway_service
+    environment:
+      - USERS_URL=http://localhost:8001
+      - PRODUCTS_URL=http://localhost:8002
+      - ORDERS_URL=http://localhost:8003
+    restart: always
+    depends_on:
+      - users_service
+      - products_service
+      - orders_service
+    ports:
+      - "8000:8000"
+    networks:
+      - backend
+
+volumes:
+  pgdata:
+
+networks:
+  backend:

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Gestion Utilisateurs</title>
+  <style>
+    table { border-collapse: collapse; width: 100%; margin-top: 1em;}
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    form > * { margin: 5px 0; }
+  </style>
+</head>
+<body>
+
+<h1>Gestion des utilisateurs</h1>
+
+<!-- Formulaire ajout -->
+<h2>Ajouter un utilisateur</h2>
+<form id="addUserForm">
+  <input type="text" id="name" placeholder="Nom" required />
+  <input type="email" id="email" placeholder="Email" required />
+  <button type="submit">Ajouter</button>
+</form>
+
+<!-- Liste utilisateurs -->
+<h2>Liste des utilisateurs</h2>
+<table id="usersTable">
+  <thead>
+    <tr><th>ID</th><th>Nom</th><th>Email</th><th>Actions</th></tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<!-- Formulaire modification (caché par défaut) -->
+<div id="editSection" style="display:none;">
+  <h2>Modifier un utilisateur</h2>
+  <form id="editUserForm">
+    <input type="hidden" id="editUserId" />
+    <input type="text" id="editName" placeholder="Nom" required />
+    <input type="email" id="editEmail" placeholder="Email" required />
+    <button type="submit">Enregistrer</button>
+    <button type="button" id="cancelEdit">Annuler</button>
+  </form>
+</div>
+
+<script>
+  const apiUrl = "http://localhost:8000/users";
+
+  // Fonction pour charger et afficher les utilisateurs
+  async function loadUsers() {
+    const res = await fetch(apiUrl + "/");
+    const users = await res.json();
+    const tbody = document.querySelector("#usersTable tbody");
+    tbody.innerHTML = "";
+    users.forEach(u => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${u.id}</td>
+        <td>${u.name}</td>
+        <td>${u.email}</td>
+        <td>
+          <button onclick="showEditForm(${u.id}, '${u.name}', '${u.email}')">Modifier</button>
+          <button onclick="deleteUser(${u.id})">Supprimer</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Ajouter utilisateur
+  document.getElementById("addUserForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const name = document.getElementById("name").value;
+    const email = document.getElementById("email").value;
+    const res = await fetch(apiUrl + "/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email })
+    });
+    if (res.ok) {
+      document.getElementById("addUserForm").reset();
+      loadUsers();
+    } else {
+      alert("Erreur lors de l'ajout : " + (await res.text()));
+    }
+  });
+
+  // Montrer formulaire modification
+  function showEditForm(id, name, email) {
+    document.getElementById("editUserId").value = id;
+    document.getElementById("editName").value = name;
+    document.getElementById("editEmail").value = email;
+    document.getElementById("editSection").style.display = "block";
+  }
+
+  // Annuler modification
+  document.getElementById("cancelEdit").addEventListener("click", () => {
+    document.getElementById("editSection").style.display = "none";
+  });
+
+  // Envoyer modification
+  document.getElementById("editUserForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const id = document.getElementById("editUserId").value;
+    const name = document.getElementById("editName").value;
+    const email = document.getElementById("editEmail").value;
+    const res = await fetch(apiUrl + "/" + id, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email })
+    });
+    if (res.ok) {
+      document.getElementById("editSection").style.display = "none";
+      loadUsers();
+    } else {
+      alert("Erreur lors de la modification : " + (await res.text()));
+    }
+  });
+
+  // Supprimer utilisateur
+  async function deleteUser(id) {
+    if (!confirm("Confirmer la suppression ?")) return;
+    const res = await fetch(apiUrl + "/" + id, { method: "DELETE" });
+    if (res.ok) {
+      loadUsers();
+    } else {
+      alert("Erreur lors de la suppression");
+    }
+  }
+
+  // Chargement initial
+  loadUsers();
+</script>
+
+</body>
+</html>

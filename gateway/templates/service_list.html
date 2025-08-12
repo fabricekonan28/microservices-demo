@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head><title>{{ service }} list</title></head>
+<body>
+<h1>{{ service }} list</h1>
+<a href="/{{ service }}/create">Create new {{ service[:-1] }}</a>
+<ul>
+  {% for item in items %}
+    <li><a href="/{{ service }}/{{ item.id }}">{{ item.name if item.name else item.id }}</a></li>
+  {% endfor %}
+</ul>
+<a href="/">Back to home</a>
+</body>
+</html>
+

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head><title>Ajouter utilisateur</title></head>
+<body>
+<h1>Ajouter un utilisateur</h1>
+<a href="/">Accueil</a> | <a href="/users">Liste des utilisateurs</a>
+{% if error %}
+<p style="color:red;">{{ error }}</p>
+{% endif %}
+<form method="post" action="/users/add">
+    <label>Nom: <input type="text" name="name" required></label><br>
+    <label>Email: <input type="email" name="email" required></label><br>
+    <button type="submit">Ajouter</button>
+</form>
+</body>
+</html>
