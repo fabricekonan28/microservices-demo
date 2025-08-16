@@ -9,7 +9,13 @@
     <li><a href="/{{ service }}/{{ item.id }}">{{ item.name if item.name else item.id }}</a></li>
   {% endfor %}
 </ul>
-<a href="/">Back to home</a>
+
+<hr>
+<!-- Liens vers les autres vues -->
+<a href="/">Accueil</a> |
+{% for s in services %}
+  <a href="/{{ s }}/">{{ s }} list</a> |
+  <a href="/{{ s }}/create">Créer {{ s[:-1] }}</a> |
+{% endfor %}
 </body>
 </html>
-

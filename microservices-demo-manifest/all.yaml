@@ -1,0 +1,350 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monapp
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: monapp-config
+  namespace: monapp
+data:
+  # URLs internes (DNS Kubernetes) que le gateway utilisera
+  USERS_URL: "http://users-service.monapp.svc.cluster.local:8001"
+  PRODUCTS_URL: "http://products-service.monapp.svc.cluster.local:8002"
+  ORDERS_URL: "http://orders-service.monapp.svc.cluster.local:8003"
+  # Si tu utilises Postgres en cluster (objet ci-dessous)
+  USERS_DATABASE_URL: "postgresql://appuser:changeme@postgres.monapp.svc.cluster.local:5432/usersdb"
+  PRODUCTS_DATABASE_URL: "postgresql://appuser:changeme@postgres.monapp.svc.cluster.local:5432/productsdb"
+  ORDERS_DATABASE_URL: "postgresql://appuser:changeme@postgres.monapp.svc.cluster.local:5432/ordersdb"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: monapp-secrets
+  namespace: monapp
+type: Opaque
+stringData:
+  POSTGRES_PASSWORD: "changeme"
+  # Tokens/API keys éventuels
+  # SONAR_TOKEN: ""
+---
+# (Optionnel) Postgres pour environnement local de démo
+# Pour de la prod: préférer StatefulSet + PVC, ici on simplifie avec un Deployment + emptyDir
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: monapp
+labels:
+  app: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: postgres }
+  template:
+    metadata:
+      labels: { app: postgres }
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: "appuser"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: monapp-secrets
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              value: "usersdb"
+          volumeMounts:
+            - name: pgdata
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: pgdata
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: monapp
+labels:
+  app: postgres
+spec:
+  selector:
+    app: postgres
+  ports:
+    - name: db
+      port: 5432
+      targetPort: 5432
+  type: ClusterIP
+---
+# ========== USERS ==========
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: users-deploy
+  namespace: monapp
+labels:
+  app: users
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: users }
+  template:
+    metadata:
+      labels: { app: users }
+    spec:
+      containers:
+        - name: users
+          # Placeholder : sera remplacé par Jenkins (sed) par localhost:5001/monapp:${BUILD_NUMBER}-users_service
+          image: localhost:5001/monapp:DEV-users_service
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: monapp-config
+                  key: USERS_DATABASE_URL
+          ports:
+            - containerPort: 8001
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 2
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "300m"
+              memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: users-service
+  namespace: monapp
+labels:
+  app: users
+spec:
+  selector:
+    app: users
+  ports:
+    - name: http
+      port: 8001
+      targetPort: 8001
+  type: ClusterIP
+---
+# ========== PRODUCTS ==========
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: products-deploy
+  namespace: monapp
+labels:
+  app: products
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: products }
+  template:
+    metadata:
+      labels: { app: products }
+    spec:
+      containers:
+        - name: products
+          image: localhost:5001/monapp:DEV-products_service
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: monapp-config
+                  key: PRODUCTS_DATABASE_URL
+          ports:
+            - containerPort: 8002
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8002
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 2
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8002
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 2
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "300m"
+              memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: products-service
+  namespace: monapp
+labels:
+  app: products
+spec:
+  selector:
+    app: products
+  ports:
+    - name: http
+      port: 8002
+      targetPort: 8002
+  type: ClusterIP
+---
+# ========== ORDERS ==========
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orders-deploy
+  namespace: monapp
+labels:
+  app: orders
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: orders }
+  template:
+    metadata:
+      labels: { app: orders }
+    spec:
+      containers:
+        - name: orders
+          image: localhost:5001/monapp:DEV-orders_service
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: monapp-config
+                  key: ORDERS_DATABASE_URL
+          ports:
+            - containerPort: 8003
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8003
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 2
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8003
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 2
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "300m"
+              memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orders-service
+  namespace: monapp
+labels:
+  app: orders
+spec:
+  selector:
+    app: orders
+  ports:
+    - name: http
+      port: 8003
+      targetPort: 8003
+  type: ClusterIP
+---
+# ========== GATEWAY ==========
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-deploy
+  namespace: monapp
+labels:
+  app: gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: gateway }
+  template:
+    metadata:
+      labels: { app: gateway }
+    spec:
+      containers:
+        - name: gateway
+          image: localhost:5001/monapp:DEV-gateway_service
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: monapp-config
+          ports:
+            - containerPort: 8000
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 2
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 2
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "300m"
+              memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-service
+  namespace: monapp
+labels:
+  app: gateway
+spec:
+  selector:
+    app: gateway
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000
+      nodePort: 30080
+  type: NodePort

@@ -16,5 +16,13 @@
     {% endif %}
   {% endfor %}
 </ul>
+
+<h2>Via Gateway</h2>
+<ul>
+  {% for service in services %}
+    <li><a href="/{{ service }}/">{{ service }} list</a></li>
+    <li><a href="/{{ service }}/create">Créer {{ service[:-1] }}</a></li>
+  {% endfor %}
+</ul>
 </body>
 </html>

@@ -17,6 +17,14 @@
   {% endif %}
   <button type="submit">Create</button>
 </form>
-<a href="/{{ service }}/">Back to {{ service }} list</a>
+
+<hr>
+<!-- Navigation -->
+<a href="/{{ service }}/">Retour liste {{ service }}</a> |
+<a href="/">Accueil</a> |
+{% for s in services %}
+  <a href="/{{ s }}/">{{ s }} list</a> |
+  <a href="/{{ s }}/create">Créer {{ s[:-1] }}</a> |
+{% endfor %}
 </body>
 </html>
