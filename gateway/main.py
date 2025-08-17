@@ -4,6 +4,7 @@ from fastapi.responses import RedirectResponse
 import httpx
 import os
 from dotenv import load_dotenv
+from prometheus_fastapi_instrumentator import Instrumentator
 
 load_dotenv()
 
@@ -16,6 +17,9 @@ SERVICES = {
 app = FastAPI(title="API Gateway")
 templates = Jinja2Templates(directory="templates")
 
+@app.on_event("startup")
+async def startup():
+    Instrumentator().instrument(app).expose(app)
 
 @app.get("/")
 async def home(request: Request):

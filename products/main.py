@@ -8,6 +8,8 @@ from sqlalchemy import create_engine, Column, Integer, String, Float
 from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy.exc import IntegrityError
 from pydantic import BaseModel
+from prometheus_fastapi_instrumentator import Instrumentator
+
 
 load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -29,6 +31,10 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
+
+@app.on_event("startup")
+async def startup():
+    Instrumentator().instrument(app).expose(app)
 
 def get_db():
     db = SessionLocal()

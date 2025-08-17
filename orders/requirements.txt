@@ -8,4 +8,5 @@ httpx==0.24.1   # gateway needs it; harmless in others
 jinja2
 aiofiles
 python-multipart
+prometheus-fastapi-instrumentator
 
