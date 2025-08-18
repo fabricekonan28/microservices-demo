@@ -7,7 +7,6 @@ from sqlalchemy.sql import func
 from pydantic import BaseModel
 import os
 from dotenv import load_dotenv
-from prometheus_fastapi_instrumentator import Instrumentator
 
 
 load_dotenv()
@@ -31,9 +30,6 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(title="Orders Service")
 templates = Jinja2Templates(directory="templates")
 
-@app.on_event("startup")
-async def startup():
-    Instrumentator().instrument(app).expose(app)
 
 def get_db():
     db = SessionLocal()

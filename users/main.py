@@ -7,7 +7,6 @@ from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from sqlalchemy.exc import IntegrityError
 import os
 from dotenv import load_dotenv
-from prometheus_fastapi_instrumentator import Instrumentator
 
 
 load_dotenv()
@@ -32,9 +31,7 @@ app = FastAPI(title="Users Service")
 
 templates = Jinja2Templates(directory="templates")
 
-@app.on_event("startup")
-async def startup():
-    Instrumentator().instrument(app).expose(app)
+
 
 def get_db() -> Session:
     db = SessionLocal()
